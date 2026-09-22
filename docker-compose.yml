@@ -1,0 +1,55 @@
+services:
+  # 1. Database Spaziale (PostGIS)
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: urban_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: urban_accessibility
+    ports:
+      - "5433:5432" # Modificato per evitare conflitti con il tuo Postgres locale
+    volumes:
+      # Monta lo script SQL che abbiamo scritto prima per creare le tabelle al primo avvio
+      - ./database/init-scripts:/docker-entrypoint-initdb.d
+      # Volume persistente per non perdere i dati spaziali se spegniamo il container
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # 2. Backend API (Python / FastAPI)
+  backend:
+    image: python:3.11-slim
+    container_name: urban_backend
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - ./data:/data  # Montiamo i dati grezzi per poter lanciare lo script di ingestion dal container
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=postgrespassword
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=urban_accessibility
+    # All'avvio installa le dipendenze e lancia il server web
+    command: >
+      bash -c "pip install -r requirements.txt &&
+               pip install fastapi uvicorn &&
+               uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  # 3. Frontend Web (Nginx statico)
+  frontend:
+    image: nginx:alpine
+    container_name: urban_frontend
+    ports:
+      - "8080:80" # Mappato sulla 8080 per evitare conflitti con eventuali webserver del tuo PC
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
