@@ -12,11 +12,11 @@ L'obiettivo è trasformare il backend FastAPI in un motore di interrogazione geo
   - [x] Configurazione middleware CORS in `backend/main.py` per abilitare le chiamate dal frontend
   - [x] Predisposizione della cartella `backend/api/` con router modulari (`APIRouter`)
 
-- [ ] **Step 2: Endpoint Spaziali Core (Interrogazione del Territorio)**
-  - [ ] `GET /api/pois/nearby`: ricerca PoI (università, biblioteche, rastrelliere) entro un raggio con distanza
-  - [ ] `GET /api/mobility/stops/nearby`: ricerca fermate TPER con raggio e distanza
-  - [ ] `GET /api/mobility/bikepaths`: esportazione tracciati piste ciclabili in formato GeoJSON
-  - [ ] `GET /api/green/areas`: esportazione parchi e aree verdi in formato GeoJSON
+- [x] **Step 2: Endpoint Spaziali Core (Interrogazione del Territorio)** ✅
+  - [x] `GET /api/pois/nearby`: ricerca PoI (università, biblioteche, rastrelliere) entro un raggio con distanza
+  - [x] `GET /api/mobility/stops/nearby`: ricerca fermate TPER con raggio e distanza
+  - [x] `GET /api/mobility/bikepaths`: esportazione tracciati piste ciclabili in formato GeoJSON
+  - [x] `GET /api/green/areas`: esportazione parchi e aree verdi in formato GeoJSON
 
 - [ ] **Step 3: Endpoint di Analisi Contestuale (Context & Density)**
   - [ ] `GET /api/context/summary`: aggregazione statistica dei servizi entro un raggio da un punto GPS

@@ -12,7 +12,12 @@ Il codice è organizzato in tre livelli logici principali, ciascuno containerizz
 ```text
 Context-Aware-Project/
 ├── backend/            # Logic Layer (Python / FastAPI)
-│   ├── api/            # Router RESTful modulari (pois, mobility, green, context)
+│   ├── api/            # Router RESTful modulari e schemi Pydantic
+│   │   ├── schemas.py  # Modelli dati di risposta e validazione
+│   │   ├── pois.py     # Endpoint POI (sedi Unibo, biblioteche, rastrelliere)
+│   │   ├── mobility.py # Endpoint TPER (fermate) e piste ciclabili (GeoJSON)
+│   │   ├── green.py    # Endpoint parchi e aree verdi (GeoJSON)
+│   │   └── context.py  # Endpoint analisi contestuale e raccomandazione
 │   ├── database.py     # Connessione SQLAlchemy e gestione sessioni PostGIS
 │   ├── main.py         # Entrypoint FastAPI con CORS e diagnostica
 │   ├── scripts_ingestion/ # Script di data ingestion (Open Data & GTFS)
@@ -62,7 +67,26 @@ Il sistema aggrega ed elabora dati reali provenienti da:
     - Strutturata l'architettura a router modulari in `backend/api/` (`pois.py`, `mobility.py`, `green.py`, `context.py`).
     - Implementato l'endpoint diagnostico `/api/health` per validare la connettività al database e l'estensione PostGIS.
     - Creato il piano di sviluppo dettagliato in [file/Fase_2_Piano_di_Sviluppo.md](file/Fase_2_Piano_di_Sviluppo.md).
-  - **Step 2 (Prossimo Passo):** Implementazione degli endpoint geospaziali core (`ST_DWithin`, calcolo distanze in metri, esportazione GeoJSON).
+  - **Step 2 Completato ✅:**
+    - Schemi Pydantic tipizzati in `backend/api/schemas.py`.
+    - `GET /api/pois/nearby`: ricerca punti di interesse con calcolo geodetico della distanza in metri (`ST_DWithin`, `ST_Distance`).
+    - `GET /api/pois/categories`: elenco delle categorie disponibili (`unibo`, `biblioteca`, `rastrelliera`, `museo`).
+    - `GET /api/mobility/stops/nearby`: ricerca fermate autobus TPER entro un raggio.
+    - `GET /api/mobility/bikepaths`: esportazione geometrie ciclabili in standard GeoJSON `FeatureCollection` con supporto bounding box.
+    - `GET /api/green/nearby` e `GET /api/green/areas`: ricerca parchi e download del layer GeoJSON.
+  - **Step 3 (Prossimo Passo):** Endpoint di Analisi Contestuale aggregata (`GET /api/context/summary`).
+
+## Endpoint API Principali
+
+| Metodo | Endpoint | Descrizione |
+| :--- | :--- | :--- |
+| `GET` | `/api/health` | Stato del server e versione PostGIS |
+| `GET` | `/api/pois/categories` | Elenco categorie POI presenti |
+| `GET` | `/api/pois/nearby` | POI entro un raggio in metri (con distanza esatta) |
+| `GET` | `/api/mobility/stops/nearby` | Fermate TPER vicine a un punto GPS |
+| `GET` | `/api/mobility/bikepaths` | Tracciati piste ciclabili in GeoJSON (`FeatureCollection`) |
+| `GET` | `/api/green/nearby` | Parchi e aree verdi entro un raggio |
+| `GET` | `/api/green/areas` | Parchi e giardini in GeoJSON (`FeatureCollection`) |
 
 ## Come Avviare il Progetto
 

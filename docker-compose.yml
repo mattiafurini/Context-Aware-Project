@@ -1,3 +1,5 @@
+name: contextawareproject
+
 services:
   # 1. Database Spaziale (PostGIS)
   db:
