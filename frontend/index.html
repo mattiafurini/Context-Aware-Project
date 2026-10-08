@@ -3,11 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Urban Accessibility</title>
+    <title>Student Urban Accessibility Advisor – Bologna 🎓🗺️</title>
+    <meta name="description" content="Piattaforma geospaziale context-aware per studenti universitari a Bologna. Analisi di accessibilità a biblioteche, aule studio, trasporto pubblico TPER e ciclabilità.">
+
+    <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Leaflet 1.9.4 CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Student Urban Accessibility Advisor</h1>
-    <p>Il frontend &egrave; configurato e servito tramite Nginx in Docker.</p>
-    <p>Prossimamente qui apparir&agrave; la mappa interattiva Leaflet!</p>
+    <div id="app-layout">
+        <!-- HEADER TOP BAR -->
+        <header id="main-header">
+            <div class="header-brand">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="app-title">Student Urban Advisor</h1>
+                    <span class="app-subtitle">Bologna • Spatial Context-Aware Platform</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div id="api-status-badge" class="status-badge connecting" title="Verifica connessione API">
+                    <span class="status-dot"></span>
+                    <span id="api-status-text">Connessione API...</span>
+                </div>
+                <button id="btn-toggle-sidebar" class="btn-icon" title="Espandi/Riduci pannello">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN WORKSPACE: SIDEBAR + MAP -->
+        <div id="workspace">
+            <!-- SIDEBAR -->
+            <aside id="sidebar">
+                <!-- PRESET LOCALITÀ RAPIDE -->
+                <section class="sidebar-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                        <h2>Punti di Interesse Rapidi</h2>
+                    </div>
+                    <div class="preset-chips">
+                        <button class="chip active" data-lat="44.4965" data-lon="11.3533" id="chip-zamboni">
+                            <i class="fa-solid fa-university"></i> Via Zamboni
+                        </button>
+                        <button class="chip" data-lat="44.4938" data-lon="11.3426" id="chip-maggiore">
+                            <i class="fa-solid fa-landmark"></i> P.zza Maggiore
+                        </button>
+                        <button class="chip" data-lat="44.5058" data-lon="11.3430" id="chip-stazione">
+                            <i class="fa-solid fa-train"></i> Stazione FS
+                        </button>
+                        <button class="chip" data-lat="44.4820" data-lon="11.3530" id="chip-margherita">
+                            <i class="fa-solid fa-tree"></i> G. Margherita
+                        </button>
+                    </div>
+                </section>
+
+                <!-- CONTROLLO RAGGIO E POSIZIONE -->
+                <section class="sidebar-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-circle-dot"></i>
+                        <h2>Area di Prossimità (Buffer)</h2>
+                    </div>
+                    <div class="range-control">
+                        <div class="range-labels">
+                            <span>Raggio di analisi a piedi/bici:</span>
+                            <span id="radius-value-badge" class="badge-accent">500 m</span>
+                        </div>
+                        <input type="range" id="radius-slider" min="200" max="1500" step="50" value="500">
+                        <div class="range-ticks">
+                            <span>200m (3 min)</span>
+                            <span>500m (7 min)</span>
+                            <span>1500m (20 min)</span>
+                        </div>
+                    </div>
+                    <div class="selected-coords-box">
+                        <i class="fa-solid fa-map-pin"></i>
+                        <span id="coords-text">44.49650° N, 11.35330° E</span>
+                    </div>
+                </section>
+
+                <!-- LAYER TOGGLES -->
+                <section class="sidebar-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <h2>Layer Tematici</h2>
+                    </div>
+                    <div class="layer-switches">
+                        <label class="switch-card" for="toggle-unibo">
+                            <div class="switch-label">
+                                <span class="layer-dot dot-unibo"></span>
+                                <span>Sedi Unibo & Aule</span>
+                            </div>
+                            <input type="checkbox" id="toggle-unibo" checked>
+                            <span class="slider"></span>
+                        </label>
+
+                        <label class="switch-card" for="toggle-biblioteche">
+                            <div class="switch-label">
+                                <span class="layer-dot dot-biblio"></span>
+                                <span>Biblioteche Comunali</span>
+                            </div>
+                            <input type="checkbox" id="toggle-biblioteche" checked>
+                            <span class="slider"></span>
+                        </label>
+
+                        <label class="switch-card" for="toggle-tper">
+                            <div class="switch-label">
+                                <span class="layer-dot dot-tper"></span>
+                                <span>Fermate Bus TPER</span>
+                            </div>
+                            <input type="checkbox" id="toggle-tper" checked>
+                            <span class="slider"></span>
+                        </label>
+
+                        <label class="switch-card" for="toggle-ciclabili">
+                            <div class="switch-label">
+                                <span class="layer-dot dot-bici"></span>
+                                <span>Piste Ciclabili (Rete)</span>
+                            </div>
+                            <input type="checkbox" id="toggle-ciclabili" checked>
+                            <span class="slider"></span>
+                        </label>
+
+                        <label class="switch-card" for="toggle-verdi">
+                            <div class="switch-label">
+                                <span class="layer-dot dot-verde"></span>
+                                <span>Parchi & Aree Verdi</span>
+                            </div>
+                            <input type="checkbox" id="toggle-verdi" checked>
+                            <span class="slider"></span>
+                        </label>
+
+                        <label class="switch-card" for="toggle-rastrelliere">
+                            <div class="switch-label">
+                                <span class="layer-dot dot-racks"></span>
+                                <span>Rastrelliere Bici</span>
+                            </div>
+                            <input type="checkbox" id="toggle-rastrelliere">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- CARD ANALISI CONTESTUALE -->
+                <section class="sidebar-section" id="context-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <h2>Analisi Contestuale Attuale</h2>
+                    </div>
+
+                    <div id="context-cards-grid" class="metrics-grid">
+                        <div class="metric-card" id="card-unibo">
+                            <div class="metric-icon unibo"><i class="fa-solid fa-building-columns"></i></div>
+                            <div class="metric-data">
+                                <span class="metric-num" id="count-unibo">-</span>
+                                <span class="metric-title">Sedi Unibo</span>
+                            </div>
+                            <span class="metric-dist" id="dist-unibo">- m</span>
+                        </div>
+
+                        <div class="metric-card" id="card-biblio">
+                            <div class="metric-icon biblio"><i class="fa-solid fa-book-open"></i></div>
+                            <div class="metric-data">
+                                <span class="metric-num" id="count-biblio">-</span>
+                                <span class="metric-title">Biblioteche</span>
+                            </div>
+                            <span class="metric-dist" id="dist-biblio">- m</span>
+                        </div>
+
+                        <div class="metric-card" id="card-bus">
+                            <div class="metric-icon bus"><i class="fa-solid fa-bus"></i></div>
+                            <div class="metric-data">
+                                <span class="metric-num" id="count-bus">-</span>
+                                <span class="metric-title">Fermate Bus</span>
+                            </div>
+                            <span class="metric-dist" id="dist-bus">- m</span>
+                        </div>
+
+                        <div class="metric-card" id="card-bici">
+                            <div class="metric-icon bici"><i class="fa-solid fa-bicycle"></i></div>
+                            <div class="metric-data">
+                                <span class="metric-num" id="count-bici">-</span>
+                                <span class="metric-title">Tratti Ciclabili</span>
+                            </div>
+                            <span class="metric-dist" id="dist-bici">- m</span>
+                        </div>
+
+                        <div class="metric-card" id="card-verde">
+                            <div class="metric-icon verde"><i class="fa-solid fa-tree"></i></div>
+                            <div class="metric-data">
+                                <span class="metric-num" id="count-verde">-</span>
+                                <span class="metric-title">Aree Verdi</span>
+                            </div>
+                            <span class="metric-dist" id="dist-verde">- m</span>
+                        </div>
+
+                        <div class="metric-card" id="card-racks">
+                            <div class="metric-icon racks"><i class="fa-solid fa-square-parking"></i></div>
+                            <div class="metric-data">
+                                <span class="metric-num" id="count-racks">-</span>
+                                <span class="metric-title">Rastrelliere</span>
+                            </div>
+                            <span class="metric-dist" id="dist-racks">- m</span>
+                        </div>
+                    </div>
+
+                    <!-- BOX SINTESI TESTUALE -->
+                    <div class="summary-box">
+                        <div class="summary-header">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Sintesi Contestuale</span>
+                        </div>
+                        <p id="context-summary-text">Caricamento analisi spaziale...</p>
+                    </div>
+                </section>
+
+                <!-- PREFERENZE UTENTE (PROFILAZIONE - FASE 4 BRIDGE) -->
+                <section class="sidebar-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-sliders"></i>
+                        <h2>Profilo e Pesi Preferenze</h2>
+                    </div>
+                    <div class="preference-sliders">
+                        <div class="pref-item">
+                            <div class="pref-label">
+                                <span>📚 Studio & Biblioteche</span>
+                                <span id="weight-study-val" class="weight-badge">40%</span>
+                            </div>
+                            <input type="range" id="weight-study" min="0" max="100" value="40" class="pref-slider study">
+                        </div>
+
+                        <div class="pref-item">
+                            <div class="pref-label">
+                                <span>🚌 Trasporto Pubblico</span>
+                                <span id="weight-transit-val" class="weight-badge">30%</span>
+                            </div>
+                            <input type="range" id="weight-transit" min="0" max="100" value="30" class="pref-slider transit">
+                        </div>
+
+                        <div class="pref-item">
+                            <div class="pref-label">
+                                <span>🚲 Mobilità Ciclabile</span>
+                                <span id="weight-bike-val" class="weight-badge">20%</span>
+                            </div>
+                            <input type="range" id="weight-bike" min="0" max="100" value="20" class="pref-slider bike">
+                        </div>
+
+                        <div class="pref-item">
+                            <div class="pref-label">
+                                <span>🌳 Parchi & Relax</span>
+                                <span id="weight-green-val" class="weight-badge">10%</span>
+                            </div>
+                            <input type="range" id="weight-green" min="0" max="100" value="10" class="pref-slider green">
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- MAP CONTAINER -->
+            <main id="map-container">
+                <div id="map"></div>
+
+                <!-- CONTROLLI FLUTTUANTI SULLA MAPPA -->
+                <div class="map-floating-panel" id="map-instructions">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <span>Clicca ovunque sulla mappa per analizzare l'accessibilità dell'area</span>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Leaflet 1.9.4 JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Custom Logic -->
+    <script src="app.js"></script>
 </body>
 </html>

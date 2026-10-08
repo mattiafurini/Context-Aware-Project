@@ -143,10 +143,10 @@ flowchart TD
 
 | File | Scopo e Ruolo Tecnico |
 | :--- | :--- |
-| **`frontend/Dockerfile`** | Immagine Nginx Alpine ad alta efficienza per servire i file statici HTML/JS/CSS. |
-| **`frontend/index.html`** | Struttura scheletro della dashboard web (accoglierà il container della mappa Leaflet e il pannello dei controlli). |
-| **`frontend/app.js`** | Logica client-side Leaflet: effettuerà le chiamate asincrone `fetch()` agli endpoint di backend e disegnerà i layer geografici sulla mappa. |
-| **`frontend/style.css`** | Stili grafici della dashboard (layout full-screen, sidebar per i filtri, popup informativi). |
+| **`frontend/Dockerfile`** | Immagine Nginx Alpine ad alta efficienza per servire i file statici HTML/JS/CSS sulla porta `8080`. |
+| **`frontend/index.html`** | Struttura semantica della dashboard: header con status live delle API, sidebar controlli (preset rapidi, slider buffer raggio, toggle layer tematici, card metriche live e slider preferenze) e container `#map`. |
+| **`frontend/app.js`** | Logica client-side Leaflet.js: basemap Esri Dark Gray Canvas, gestione layer multipli, interazione al click con cerchio di prossimità (`L.circle`), marker dello studente draggabile, chiamate asincrone `fetch()` alle API REST e aggiornamento dinamico dei dati. |
+| **`frontend/style.css`** | Design system moderno: variabili CSS, Dark Mode ad alto contrasto, pannelli in glassmorphism, palette colori distintiva per i servizi e transizioni fluide. |
 
 ---
 

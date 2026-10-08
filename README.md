@@ -66,8 +66,18 @@ Il sistema aggrega ed elabora dati reali provenienti da:
   - **Step 3 Completato ✅:** `GET /api/context/summary` per l'aggregazione contestuale e calcolo distanze minime verso tutti i servizi.
   - **Step 4 Completato ✅:** Collaudo superato su coordinate reali di Bologna (Piazza Maggiore, Via Zamboni, Giardini Margherita, Stazione Centrale), validazione Swagger UI (`/docs`) e ottimizzazione indici spaziali GIST (latenze ~6-7ms).
 
-- **Fase 3 (Frontend Dashboard & Web Mapping) – Prossimo Passo 🚀**
-  - Integrazione di Leaflet.js nella dashboard web per visualizzare POI, layer ciclabili e fermate TPER.
+- **Fase 3 (Frontend Dashboard & Web Mapping) – Completata al 100% ✅**
+  - Dashboard interattiva con Leaflet.js servita da Nginx su `http://localhost:8080`.
+  - Basemap scura Esri Dark Gray Canvas ad altissima leggibilità e contrasto.
+  - Visualizzazione multilivello con layer GeoJSON (piste ciclabili cyan, aree verdi smeraldo) e marker tematici (Unibo, biblioteche, fermate TPER, rastrelliere).
+  - Interazione spaziale fluida con click-on-map, catchment area circolare dinamica (buffer da 200m a 1500m) e marker draggabile.
+  - Sidebar con metriche live, distanze a piedi calcolate e sintesi qualitativa del contesto.
+  - Slider per la regolazione pesata delle preferenze dello studente (studio, mobilità, verde).
+
+- **Fase 4 (Context-Aware Recommendation & Accessibility Score) – Prossimo Passo 🚀**
+  - Algoritmo di calcolo dello *Student Accessibility Score* dinamico (somme pesate).
+  - Motore di raccomandazione con spiegazioni testuali contestuali esplicite.
+  - Filtri temporali per orari di apertura aule studio e biblioteche.
 
 ## Endpoint API Principali
 
