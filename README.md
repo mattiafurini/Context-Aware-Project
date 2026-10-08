@@ -36,7 +36,10 @@ Context-Aware-Project/
 │   └── processed/      # Dataset ripuliti e intermedi
 │
 ├── file/               # Specifiche di progetto, piani di sviluppo e documentazione esame
-│   └── Fase_2_Piano_di_Sviluppo.md # Piano operativo e checklist della Fase 2
+│   ├── Fase_2_Piano_di_Sviluppo.md # Piano operativo e checklist della Fase 2
+│   ├── Fase_3_Piano_di_Sviluppo.md # Piano operativo e checklist della Fase 3
+│   ├── Fase_4_Piano_di_Sviluppo.md # Piano operativo e checklist della Fase 4
+│   └── Architettura_e_Guida_Completa_Progetto.md # Guida completa all'architettura e Q&A esame
 │
 └── docker-compose.yml  # Orchestrazione container Docker
 ```
@@ -74,10 +77,15 @@ Il sistema aggrega ed elabora dati reali provenienti da:
   - Sidebar con metriche live, distanze a piedi calcolate e sintesi qualitativa del contesto.
   - Slider per la regolazione pesata delle preferenze dello studente (studio, mobilità, verde).
 
-- **Fase 4 (Context-Aware Recommendation & Accessibility Score) – Prossimo Passo 🚀**
-  - Algoritmo di calcolo dello *Student Accessibility Score* dinamico (somme pesate).
-  - Motore di raccomandazione con spiegazioni testuali contestuali esplicite.
-  - Filtri temporali per orari di apertura aule studio e biblioteche.
+- **Fase 4 (Context-Aware Recommendation & Accessibility Score) – Completata al 100% ✅**
+  - Algoritmo matematico multicriterio dello **Student Accessibility Score** (0-100) basato su densità e prossimità metrica calibrata (decadimento per distanza).
+  - Motore di raccomandazione con spiegazioni esplicite (**Explainable AI / XAI**) che genera evidenze su punti di forza, trade-off e consigli personalizzati sul profilo dello studente.
+  - Filtri temporali (**Time-Awareness**) con scenari Diurno (14:00), Serale (21:00), Notturno (23:00) o basati sull'orario di sistema reale: ricalcolo adattivo dei sub-score e verifica orari di fruibilità per aule, biblioteche e bus notturni.
+  - Componenti visuali dedicati nel frontend: gauge ad anello dinamico con tier cromatico (`Eccellente`, `Molto Buono`, `Buono`, `Sufficiente`, `Critico`), progress bar settoriali per i sub-score e box di raccomandazione reattivo in tempo reale a slider e click su mappa.
+
+- **Fase 5 (Bonus & Spatial Privacy / Clustering) – Prossimo Passo 🚀**
+  - Meccanismi di Location Privacy (perturbazione casuale o griglia spaziale a tutela della privacy dell'utente).
+  - Clustering spaziale avanzato (DBSCAN geospaziale su PostGIS/Python) per individuare macro-hub di aggregazione studentesca.
 
 ## Endpoint API Principali
 
@@ -91,6 +99,8 @@ Il sistema aggrega ed elabora dati reali provenienti da:
 | `GET` | `/api/green/nearby` | Parchi e aree verdi entro un raggio |
 | `GET` | `/api/green/areas` | Parchi e giardini in GeoJSON (`FeatureCollection`) |
 | `GET` | `/api/context/summary` | Analisi contestuale aggregata e densità servizi per un punto GPS |
+| `POST` | `/api/context/evaluate` | Calcolo Student Accessibility Score, raccomandazione XAI e time-awareness con body JSON |
+| `GET` | `/api/context/evaluate` | Calcolo Student Accessibility Score, raccomandazione XAI e time-awareness con query parameters |
 
 ## Come Avviare il Progetto
 

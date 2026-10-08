@@ -131,11 +131,11 @@ flowchart TD
 | **`backend/requirements.txt`** | Dipendenze Python: `fastapi`, `uvicorn`, `SQLAlchemy`, `psycopg2-binary`, `GeoAlchemy2`, `geopandas`, `shapely`, `pandas`. |
 | **`backend/main.py`** | Entrypoint FastAPI: inizializza l'applicazione, configura `CORSMiddleware` (per consentire le chiamate dal browser web senza errori di sicurezza), registra i 4 router modulari ed espone l'endpoint di diagnostica `/api/health` che interroga `PostGIS_Version()`. |
 | **`backend/database.py`** | Gestore della connessione: istanzia l'engine SQLAlchemy (`postgresql+psycopg2://`) con pool pre-configurato (`pool_pre_ping=True`) ed espone la dependency injection `get_db()` che fornisce sessioni isolate chiudendole automaticamente al termine di ogni richiesta. |
-| **`backend/api/schemas.py`** | Modelli Pydantic di validazione e serializzazione (`POIItem`, `BusStopItem`, `GreenAreaItem`, `PointCoordinates`): assicurano risposte JSON conformi e generano la documentazione automatica OpenAPI (Swagger). |
+| **`backend/api/schemas.py`** | Modelli Pydantic di validazione e serializzazione (`POIItem`, `BusStopItem`, `GreenAreaItem`, `PointCoordinates`, `ScoreWeights`, `SubScores`, `TemporalContext`, `ScoreEvaluationRequest`, `ScoreEvaluationResponse`): assicurano risposte JSON conformi, validazione automatica dei tipi e generazione della documentazione interattiva OpenAPI (Swagger). |
 | **`backend/api/pois.py`** | Router per i Punti di Interesse: implementa `GET /api/pois/categories`, `GET /api/pois/nearby` (ricerca per raggio con calcolo distanza metrica tramite `ST_DWithin` e `ST_Distance`) e `GET /api/pois/{id}`. |
 | **`backend/api/mobility.py`** | Router per la mobilità: implementa `GET /api/mobility/stops/nearby` (fermate TPER vicine) e `GET /api/mobility/bikepaths` (esportazione nativa in GeoJSON `FeatureCollection` con supporto al filtro Bounding Box). |
 | **`backend/api/green.py`** | Router per il verde urbano: implementa `GET /api/green/nearby` (ricerca parchi con calcolo distanza dal baricentro `ST_Centroid`) e `GET /api/green/areas` (GeoJSON per la mappa). |
-| **`backend/api/context.py`** | Router per l'analisi contestuale: implementa `GET /api/context/summary` (calcolo densità aggregata e distanze minime da tutti i servizi nel raggio, flag di presenza e sintesi testuale qualitativa); predisposto per il motore di raccomandazione pesato della Fase 4. |
+| **`backend/api/context.py`** | Router per l'analisi contestuale avanzata: implementa `GET /api/context/summary` (aggregazione spaziale e distanze minime) e `POST`/`GET /api/context/evaluate` (calcolo del multi-criterio *Student Accessibility Score* pesato, motore di raccomandazione explainable XAI con punti di forza e trade-off, e modulo di *Time-Awareness* per fasce diurne, serali e notturne). |
 
 ---
 
@@ -144,13 +144,13 @@ flowchart TD
 | File | Scopo e Ruolo Tecnico |
 | :--- | :--- |
 | **`frontend/Dockerfile`** | Immagine Nginx Alpine ad alta efficienza per servire i file statici HTML/JS/CSS sulla porta `8080`. |
-| **`frontend/index.html`** | Struttura semantica della dashboard: header con status live delle API, sidebar controlli (preset rapidi, slider buffer raggio, toggle layer tematici, card metriche live e slider preferenze) e container `#map`. |
-| **`frontend/app.js`** | Logica client-side Leaflet.js: basemap Esri Dark Gray Canvas, gestione layer multipli, interazione al click con cerchio di prossimità (`L.circle`), marker dello studente draggabile, chiamate asincrone `fetch()` alle API REST e aggiornamento dinamico dei dati. |
-| **`frontend/style.css`** | Design system moderno: variabili CSS, Dark Mode ad alto contrasto, pannelli in glassmorphism, palette colori distintiva per i servizi e transizioni fluide. |
+| **`frontend/index.html`** | Struttura semantica della dashboard: header con status live delle API, sidebar con preset rapidi, slider buffer raggio, layer tematici, card metriche live, slider di profilazione pesi utente, chip temporali (Diurno, Serale, Notturno, Live), radial gauge per lo Score, breakdown sub-score e card di raccomandazione intelligente XAI. |
+| **`frontend/app.js`** | Logica client-side Leaflet.js: basemap Esri Dark Gray Canvas, gestione layer vettoriali, interazione al click con cerchio dinamico (`L.circle`), marker dello studente draggabile, chiamate asincrone `fetch()` verso `/api/context/evaluate` con debounce ed emissione di raccomandazioni in tempo reale. |
+| **`frontend/style.css`** | Design system moderno: variabili CSS, Dark Mode ad alto contrasto, pannelli in glassmorphism, barre di avanzamento animate, badge cromatici per i tier di punteggio (`#10b981`, `#06b6d4`, `#f59e0b`, `#ef4444`) e transizioni fluide. |
 
 ---
 
-## 4. Fondamenti di Calcolo Geospaziale
+## 4. Fondamenti di Calcolo Geospaziale e Algoritmico
 
 Durante la discussione, il professore potrebbe approfondire le scelte matematiche e informatiche alla base del GIS:
 
@@ -166,6 +166,20 @@ Durante la discussione, il professore potrebbe approfondire le scelte matematich
 ### 3. Indici Spaziali GIST (R-Tree)
 * **Come funzionano:** Invece di ordinare valori scalari lineari come un B-Tree tradizionale, un indice **GIST (Generalized Search Tree)** implementa una struttura **R-Tree**, che raggruppa le geometrie all'interno di rettangoli minimi delimitatori (**Bounding Box - MBR** gerarchici).
 * **Guadagno prestazionale:** Una ricerca per raggio senza indice richiede una scansione sequenziale $O(N)$ di tutti i record del database. Con l'indice GIST, PostGIS scarta interi rami dell'albero che non intersecano l'area di ricerca, riducendo la complessità a $O(\log N)$ ed eseguendo la query in circa **2-5 millisecondi** anche su migliaia di geometrie.
+
+### 4. Il Modello Matematico dello Student Accessibility Score
+Il punteggio sintetico finale $S \in [0, 100]$ viene calcolato tramite combinazione lineare pesata di 4 sub-punteggi normalizzati:
+
+$$S = \frac{w_{\text{study}} \cdot S_{\text{study}} + w_{\text{transit}} \cdot S_{\text{transit}} + w_{\text{bike}} \cdot S_{\text{bike}} + w_{\text{green}} \cdot S_{\text{green}}}{w_{\text{study}} + w_{\text{transit}} + w_{\text{bike}} + w_{\text{green}}}$$
+
+Ciascun sub-score $S_k \in [0, 100]$ combina:
+* **Densità $D_k$ (50%):** saturazione logaritmica/lineare rispetto alla capienza attesa nell'isocrona pedonale.
+* **Prossimità $P_k$ (50%):** funzione di decadimento lineare sulla distanza minima pedonale $d_{\min}$:
+  $$P_k = \max\left(0, 100 \cdot \left(1 - \frac{d_{\min}}{R_{\max}}\right)\right)$$
+
+### 5. Time-Awareness & Explainable AI (XAI)
+* **Filtro Temporale:** Nelle ore serali (dopo le 20:00) e notturne (dopo le 22:00), le biblioteche tradizionali chiudono e la frequenza TPER passa alla sola rete notturna. Il sistema applica automaticamente un fattore correttivo sui sub-score di studio e trasporto ($S_{\text{study}} \times 0.65$, $S_{\text{transit}} \times 0.70$) ed evidenzia la variazione di stato.
+* **Explainability:** Invece di restituire solo un numero "scatola nera", il sistema analizza i gradienti dei sub-score ed emette un vettore di `strengths` (punti di forza sopra soglia), `tradeoffs` (carenze strutturali o temporali) e un paragrafo sintetico esplicito che spiega allo studente il perché del giudizio.
 
 ---
 
@@ -185,4 +199,12 @@ Durante la discussione, il professore potrebbe approfondire le scelte matematich
 
 ### D4: *"Come si articola l'aspetto Context-Aware del progetto?"*
 > **Risposta:**  
-> *"Il sistema opera secondo il paradigma context-aware: acquisisce il contesto primario dell'utente (posizione geografica e orario) e il contesto delle preferenze (pesi assegnati a studio, trasporti e mobilità ciclabile). Attraverso l'endpoint di analisi contestuale (`/api/context/summary`), il sistema aggrega la densità dei servizi circostanti e calcola un punteggio dinamico pesato (Student Accessibility Score), accompagnando il risultato con una raccomandazione testuale motivata e applicando meccanismi di temporal-filtering e spatial-privacy."*
+> *"Il sistema opera secondo il paradigma context-aware: acquisisce il contesto primario dell'utente (posizione geografica e orario) e il contesto delle preferenze (pesi assegnati a studio, trasporti e mobilità ciclabile). Attraverso l'endpoint `/api/context/evaluate`, il sistema aggrega la densità dei servizi circostanti e calcola un punteggio dinamico pesato (Student Accessibility Score), accompagnando il risultato con una raccomandazione testuale motivata e applicando meccanismi di temporal-filtering e spatial-privacy."*
+
+### D5: *"Come funziona la spiegabilità (Explainable AI) nel vostro sistema di raccomandazione?"*
+> **Risposta:**  
+> *"L'algoritmo non si limita a produrre un punteggio numerico complessivo, ma scompone la valutazione in quattro dimensioni trasparenti (studio, trasporto, ciclabilità, verde). Tramite regole multi-criterio, confronta ciascun sub-punteggio con le soglie di eccellenza o criticità e incrocia il risultato con i pesi impostati dall'utente. Questo consente di generare in linguaggio naturale punti di forza concreti (es. 'Fermata bus a 85m', 'Rete ciclabile a 30m') ed esplicitare eventuali trade-off (es. 'Distanza elevata da biblioteche'), rendendo la decisione del sistema trasparente, comprensibile e verificabile dallo studente."*
+
+### D6: *"Come influisce la dimensione temporale (Time-Awareness) sull'accessibilità calcolata?"*
+> **Risposta:**  
+> *"L'accessibilità urbana non è statica ma tempo-dipendente: avere una biblioteca a 50 metri è irrilevante se l'utente desidera studiare alle 23:00 ed essa è chiusa. Il nostro endpoint accetta il parametro `hour` (o l'ora corrente del dispositivo) e modifica dinamicamente il grafo delle disponibilità: nelle ore notturne, il punteggio per le strutture di studio scala per considerare solo eventuali aule h24, e il sub-score di trasporto tiene conto del passaggio alla rete bus notturna, informando l'utente attraverso avvisi di contesto dedicati."*

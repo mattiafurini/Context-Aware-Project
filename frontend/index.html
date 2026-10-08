@@ -271,6 +271,98 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- SCENARIO TEMPORALE (TIME-AWARENESS) -->
+                <section class="sidebar-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-clock"></i>
+                        <h2>Filtro Temporale (Time-Awareness)</h2>
+                    </div>
+                    <div class="time-chips">
+                        <button class="time-chip active" data-hour="14" id="time-day">
+                            <i class="fa-solid fa-sun"></i> Diurno (14:00)
+                        </button>
+                        <button class="time-chip" data-hour="21" id="time-evening">
+                            <i class="fa-solid fa-cloud-moon"></i> Serale (21:00)
+                        </button>
+                        <button class="time-chip" data-hour="23" id="time-night">
+                            <i class="fa-solid fa-moon"></i> Notturno (23:00)
+                        </button>
+                        <button class="time-chip" data-hour="now" id="time-now">
+                            <i class="fa-solid fa-stopwatch"></i> Orario Reale
+                        </button>
+                    </div>
+                    <div class="facility-status-box" id="facility-status-box">
+                        <i class="fa-solid fa-info-circle"></i>
+                        <span id="facility-status-text">Tutte le aule e biblioteche sono aperte.</span>
+                    </div>
+                </section>
+
+                <!-- STUDENT ACCESSIBILITY SCORE & RECOMMENDATION ENGINE -->
+                <section class="sidebar-section" id="score-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-trophy"></i>
+                        <h2>Student Accessibility Score</h2>
+                    </div>
+
+                    <div class="score-card">
+                        <div class="score-gauge-container">
+                            <div class="score-circle" id="score-circle">
+                                <span class="score-number" id="score-number">--</span>
+                                <span class="score-max">/100</span>
+                            </div>
+                            <div class="score-meta">
+                                <span class="tier-badge" id="tier-badge">VALUTAZIONE IN CORSO</span>
+                                <span class="score-subtitle">Punteggio Contestuale Pesato</span>
+                            </div>
+                        </div>
+
+                        <!-- SUB-SCORES BREAKDOWN -->
+                        <div class="subscores-breakdown">
+                            <div class="subscore-row">
+                                <span class="sub-label"><i class="fa-solid fa-building-columns"></i> Studio:</span>
+                                <div class="progress-bar-bg"><div class="progress-fill unibo" id="fill-study" style="width: 0%;"></div></div>
+                                <span class="sub-val" id="val-study">0%</span>
+                            </div>
+                            <div class="subscore-row">
+                                <span class="sub-label"><i class="fa-solid fa-bus"></i> Trasporti:</span>
+                                <div class="progress-bar-bg"><div class="progress-fill bus" id="fill-transit" style="width: 0%;"></div></div>
+                                <span class="sub-val" id="val-transit">0%</span>
+                            </div>
+                            <div class="subscore-row">
+                                <span class="sub-label"><i class="fa-solid fa-bicycle"></i> Ciclabilità:</span>
+                                <div class="progress-bar-bg"><div class="progress-fill bici" id="fill-bike" style="width: 0%;"></div></div>
+                                <span class="sub-val" id="val-bike">0%</span>
+                            </div>
+                            <div class="subscore-row">
+                                <span class="sub-label"><i class="fa-solid fa-tree"></i> Verde:</span>
+                                <div class="progress-bar-bg"><div class="progress-fill verde" id="fill-green" style="width: 0%;"></div></div>
+                                <span class="sub-val" id="val-green">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RACCOMANDAZIONE ESPLICITA CONTESTUALE -->
+                    <div class="recommendation-card">
+                        <div class="rec-title">
+                            <i class="fa-solid fa-comment-dots"></i>
+                            <span>Raccomandazione Intelligente</span>
+                        </div>
+                        <p class="rec-paragraph" id="rec-paragraph">Calcolo raccomandazione personalizzata in corso...</p>
+
+                        <!-- PUNTI DI FORZA -->
+                        <div class="insights-block">
+                            <span class="insights-title green"><i class="fa-solid fa-circle-check"></i> Punti di Forza:</span>
+                            <ul class="insights-list" id="strengths-list"></ul>
+                        </div>
+
+                        <!-- TRADE-OFFS -->
+                        <div class="insights-block">
+                            <span class="insights-title amber"><i class="fa-solid fa-triangle-exclamation"></i> Trade-off da considerare:</span>
+                            <ul class="insights-list" id="tradeoffs-list"></ul>
+                        </div>
+                    </div>
+                </section>
             </aside>
 
             <!-- MAP CONTAINER -->

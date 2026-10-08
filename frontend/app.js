@@ -23,7 +23,8 @@ const state = {
         transit: 30,
         bike: 20,
         green: 10
-    }
+    },
+    hour: 14
 };
 
 // Elementi DOM
@@ -65,7 +66,25 @@ const dom = {
     weightBike: document.getElementById("weight-bike"),
     weightBikeVal: document.getElementById("weight-bike-val"),
     weightGreen: document.getElementById("weight-green"),
-    weightGreenVal: document.getElementById("weight-green-val")
+    weightGreenVal: document.getElementById("weight-green-val"),
+    // Time Awareness
+    timeChips: document.querySelectorAll(".time-chip"),
+    facilityStatusText: document.getElementById("facility-status-text"),
+    // Score & Recommendation
+    scoreCircle: document.getElementById("score-circle"),
+    scoreNumber: document.getElementById("score-number"),
+    tierBadge: document.getElementById("tier-badge"),
+    fillStudy: document.getElementById("fill-study"),
+    valStudy: document.getElementById("val-study"),
+    fillTransit: document.getElementById("fill-transit"),
+    valTransit: document.getElementById("val-transit"),
+    fillBike: document.getElementById("fill-bike"),
+    valBike: document.getElementById("val-bike"),
+    fillGreen: document.getElementById("fill-green"),
+    valGreen: document.getElementById("val-green"),
+    recParagraph: document.getElementById("rec-paragraph"),
+    strengthsList: document.getElementById("strengths-list"),
+    tradeoffsList: document.getElementById("tradeoffs-list")
 };
 
 // Inizializzazione Leaflet
@@ -228,6 +247,7 @@ function setNewLocation(lat, lon) {
 async function refreshData() {
     await Promise.all([
         fetchContextSummary(),
+        fetchAccessibilityEvaluation(),
         fetchPoisNearby(),
         fetchStopsNearby()
     ]);
@@ -272,6 +292,56 @@ async function fetchContextSummary() {
         console.error(e);
     }
 }
+
+/**
+ * Calcolo Dinamico Accessibility Score e Raccomandazione (Fase 4)
+ */
+async function fetchAccessibilityEvaluation() {
+    try {
+        const hourParam = state.hour === "now" ? new Date().getHours() : state.hour;
+        const url = `${API_BASE}/api/context/evaluate?lat=${state.currentLat}&lon=${state.currentLon}&radius=${state.radius}&weight_study=${state.weights.study}&weight_transit=${state.weights.transit}&weight_bike=${state.weights.bike}&weight_green=${state.weights.green}&hour=${hourParam}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Errore API evaluate");
+        const data = await res.json();
+
+        // 1. Punteggio Complessivo e Livello
+        dom.scoreNumber.textContent = data.total_score.toFixed(1);
+        dom.tierBadge.textContent = data.rating_tier;
+        dom.tierBadge.style.color = data.rating_color;
+        dom.tierBadge.style.borderColor = data.rating_color;
+        dom.tierBadge.style.background = `${data.rating_color}22`;
+        dom.scoreCircle.style.borderColor = data.rating_color;
+        dom.scoreCircle.style.boxShadow = `0 0 20px ${data.rating_color}44`;
+
+        // 2. Sub-Scores Breakdown
+        dom.fillStudy.style.width = `${Math.min(100, Math.max(0, data.sub_scores.study))}%`;
+        dom.valStudy.textContent = `${Math.round(data.sub_scores.study)}%`;
+
+        dom.fillTransit.style.width = `${Math.min(100, Math.max(0, data.sub_scores.transit))}%`;
+        dom.valTransit.textContent = `${Math.round(data.sub_scores.transit)}%`;
+
+        dom.fillBike.style.width = `${Math.min(100, Math.max(0, data.sub_scores.bike))}%`;
+        dom.valBike.textContent = `${Math.round(data.sub_scores.bike)}%`;
+
+        dom.fillGreen.style.width = `${Math.min(100, Math.max(0, data.sub_scores.green))}%`;
+        dom.valGreen.textContent = `${Math.round(data.sub_scores.green)}%`;
+
+        // 3. Stato Operativo Strutture (Time-Awareness)
+        dom.facilityStatusText.textContent = data.temporal_context.facilities_open_status;
+
+        // 4. Raccomandazione Esplicita
+        dom.recParagraph.textContent = data.recommendation_text;
+
+        // 5. Punti di Forza
+        dom.strengthsList.innerHTML = data.strengths.map(s => `<li>${s}</li>`).join("");
+
+        // 6. Trade-Offs
+        dom.tradeoffsList.innerHTML = data.tradeoffs.map(t => `<li>${t}</li>`).join("");
+    } catch (e) {
+        console.error("Errore fetch accessibility evaluation:", e);
+    }
+}
+
 
 /**
  * Caricamento POIs vicini (Sedi Unibo, Biblioteche, Rastrelliere)
@@ -488,6 +558,17 @@ function setupEventListeners() {
     setupWeightSlider(dom.weightTransit, dom.weightTransitVal, "transit");
     setupWeightSlider(dom.weightBike, dom.weightBikeVal, "bike");
     setupWeightSlider(dom.weightGreen, dom.weightGreenVal, "green");
+
+    // Time Chips (Temporal Scenario)
+    dom.timeChips.forEach(chip => {
+        chip.addEventListener("click", () => {
+            dom.timeChips.forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+            const hourVal = chip.dataset.hour;
+            state.hour = hourVal === "now" ? "now" : parseInt(hourVal);
+            fetchAccessibilityEvaluation();
+        });
+    });
 }
 
 function setupLayerToggle(checkbox, layerKey) {
@@ -506,6 +587,9 @@ function setupWeightSlider(slider, badge, key) {
     slider.addEventListener("input", (e) => {
         state.weights[key] = parseInt(e.target.value);
         badge.textContent = `${state.weights[key]}%`;
+    });
+    slider.addEventListener("change", () => {
+        fetchAccessibilityEvaluation();
     });
 }
 
