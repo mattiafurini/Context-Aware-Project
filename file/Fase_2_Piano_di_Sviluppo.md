@@ -18,9 +18,9 @@ L'obiettivo è trasformare il backend FastAPI in un motore di interrogazione geo
   - [x] `GET /api/mobility/bikepaths`: esportazione tracciati piste ciclabili in formato GeoJSON
   - [x] `GET /api/green/areas`: esportazione parchi e aree verdi in formato GeoJSON
 
-- [ ] **Step 3: Endpoint di Analisi Contestuale (Context & Density)**
-  - [ ] `GET /api/context/summary`: aggregazione statistica dei servizi entro un raggio da un punto GPS
-  - [ ] Validazione di supporto per il motore di raccomandazione della Fase 4
+- [x] **Step 3: Endpoint di Analisi Contestuale (Context & Density)** ✅
+  - [x] `GET /api/context/summary`: aggregazione statistica dei servizi entro un raggio da un punto GPS
+  - [x] Validazione di supporto per il motore di raccomandazione della Fase 4
 
 - [ ] **Step 4: Collaudo, Testing e Documentazione Swagger**
   - [ ] Verifica del corretto avvio nei container Docker (`docker compose up`)

@@ -74,7 +74,9 @@ Il sistema aggrega ed elabora dati reali provenienti da:
     - `GET /api/mobility/stops/nearby`: ricerca fermate autobus TPER entro un raggio.
     - `GET /api/mobility/bikepaths`: esportazione geometrie ciclabili in standard GeoJSON `FeatureCollection` con supporto bounding box.
     - `GET /api/green/nearby` e `GET /api/green/areas`: ricerca parchi e download del layer GeoJSON.
-  - **Step 3 (Prossimo Passo):** Endpoint di Analisi Contestuale aggregata (`GET /api/context/summary`).
+  - **Step 3 Completato ✅:**
+    - `GET /api/context/summary`: analisi contestuale e densità dei servizi per un punto GPS (conteggio servizi nel raggio, distanze minime da sedi Unibo, biblioteche, bus, ciclabili e parchi, flag di presenza e sintesi testuale qualitativa del contesto).
+  - **Step 4 (Prossimo Passo):** Collaudo complessivo su Swagger UI e preparazione per la Fase 3 (Frontend Dashboard).
 
 ## Endpoint API Principali
 
@@ -87,6 +89,7 @@ Il sistema aggrega ed elabora dati reali provenienti da:
 | `GET` | `/api/mobility/bikepaths` | Tracciati piste ciclabili in GeoJSON (`FeatureCollection`) |
 | `GET` | `/api/green/nearby` | Parchi e aree verdi entro un raggio |
 | `GET` | `/api/green/areas` | Parchi e giardini in GeoJSON (`FeatureCollection`) |
+| `GET` | `/api/context/summary` | Analisi contestuale aggregata e densità servizi per un punto GPS |
 
 ## Come Avviare il Progetto
 
