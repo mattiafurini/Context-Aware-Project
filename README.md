@@ -60,23 +60,14 @@ Il sistema aggrega ed elabora dati reali provenienti da:
   - Schema PostGIS inizializzato con 4 tabelle principali (`pois`, `aree_verdi`, `piste_ciclabili`, `fermate_tper`) e relativi indici spaziali GIST.
   - Pipeline di Data Ingestion (`backend/scripts_ingestion/ingest.py`) che standardizza le coordinate a SRID 4326 (WGS84) ed esegue il caricamento massivo in formato binario spaziale EWKB.
 
-- **Fase 2 (Backend Core & Spatial API) – In corso 🚀**
-  - **Step 1 Completato ✅:**
-    - Configurato il connection pool SQLAlchemy verso PostGIS con dependency injection (`backend/database.py`).
-    - Configurato il middleware CORS in FastAPI per consentire l'interazione fluida con il frontend.
-    - Strutturata l'architettura a router modulari in `backend/api/` (`pois.py`, `mobility.py`, `green.py`, `context.py`).
-    - Implementato l'endpoint diagnostico `/api/health` per validare la connettività al database e l'estensione PostGIS.
-    - Creato il piano di sviluppo dettagliato in [file/Fase_2_Piano_di_Sviluppo.md](file/Fase_2_Piano_di_Sviluppo.md).
-  - **Step 2 Completato ✅:**
-    - Schemi Pydantic tipizzati in `backend/api/schemas.py`.
-    - `GET /api/pois/nearby`: ricerca punti di interesse con calcolo geodetico della distanza in metri (`ST_DWithin`, `ST_Distance`).
-    - `GET /api/pois/categories`: elenco delle categorie disponibili (`unibo`, `biblioteca`, `rastrelliera`, `museo`).
-    - `GET /api/mobility/stops/nearby`: ricerca fermate autobus TPER entro un raggio.
-    - `GET /api/mobility/bikepaths`: esportazione geometrie ciclabili in standard GeoJSON `FeatureCollection` con supporto bounding box.
-    - `GET /api/green/nearby` e `GET /api/green/areas`: ricerca parchi e download del layer GeoJSON.
-  - **Step 3 Completato ✅:**
-    - `GET /api/context/summary`: analisi contestuale e densità dei servizi per un punto GPS (conteggio servizi nel raggio, distanze minime da sedi Unibo, biblioteche, bus, ciclabili e parchi, flag di presenza e sintesi testuale qualitativa del contesto).
-  - **Step 4 (Prossimo Passo):** Collaudo complessivo su Swagger UI e preparazione per la Fase 3 (Frontend Dashboard).
+- **Fase 2 (Backend Core & Spatial API) – Completata al 100% ✅**
+  - **Step 1 Completato ✅:** Connection pool SQLAlchemy verso PostGIS, CORS abilitato, router modulari in `backend/api/`, endpoint `/api/health`.
+  - **Step 2 Completato ✅:** Endpoint geospaziali core (`/api/pois/nearby`, `/api/mobility/stops/nearby`, `/api/mobility/bikepaths`, `/api/green/nearby`, `/api/green/areas`) con query geodetiche e output GeoJSON.
+  - **Step 3 Completato ✅:** `GET /api/context/summary` per l'aggregazione contestuale e calcolo distanze minime verso tutti i servizi.
+  - **Step 4 Completato ✅:** Collaudo superato su coordinate reali di Bologna (Piazza Maggiore, Via Zamboni, Giardini Margherita, Stazione Centrale), validazione Swagger UI (`/docs`) e ottimizzazione indici spaziali GIST (latenze ~6-7ms).
+
+- **Fase 3 (Frontend Dashboard & Web Mapping) – Prossimo Passo 🚀**
+  - Integrazione di Leaflet.js nella dashboard web per visualizzare POI, layer ciclabili e fermate TPER.
 
 ## Endpoint API Principali
 

@@ -52,3 +52,10 @@ CREATE INDEX idx_pois_geom ON pois USING GIST (geom);
 CREATE INDEX idx_aree_verdi_geom ON aree_verdi USING GIST (geom);
 CREATE INDEX idx_piste_ciclabili_geom ON piste_ciclabili USING GIST (geom);
 CREATE INDEX idx_fermate_tper_geom ON fermate_tper USING GIST (geom);
+
+-- Indici spaziali funzionali GEOGRAPHY per query geodetiche in metri (ST_DWithin e ST_Distance)
+CREATE INDEX idx_pois_geog ON pois USING GIST ((geom::geography));
+CREATE INDEX idx_aree_verdi_geog ON aree_verdi USING GIST ((geom::geography));
+CREATE INDEX idx_piste_ciclabili_geog ON piste_ciclabili USING GIST ((geom::geography));
+CREATE INDEX idx_fermate_tper_geog ON fermate_tper USING GIST ((geom::geography));
+
